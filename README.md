@@ -51,7 +51,7 @@ send_image(
 
 For multiple images, pass a vector of byte arrays to `send_images` and provide matching `alts` (missing entries are padded with empty strings).
 
-Need a quick script? See `examples/send_gif.jl` for an end-to-end sample that pulls a GIF path from the `BSKY_GIF_PATH` environment variable and posts it with proper ALT text via `send_gif`, which performs the MP4 transcode for you.
+Need a quick script? See `examples/send_gif.jl` for an end-to-end sample that generates a Plots.jl circle animation, writes it to a temporary GIF, and posts it with proper ALT text via `send_gif`, which performs the MP4 transcode for you. The script loads credentials via DotEnv and emits `@info` progress logs as it renders, encodes, and posts.
 
 ### Posting GIFs or Video
 
@@ -93,6 +93,17 @@ send_video(
 )
 ```
 `examples/send_gif.jl` lets you override the caption with `BSKY_GIF_TEXT` / `BSKY_GIF_ALT`.
+
+### Example Scripts
+
+The `examples/` directory contains ready-to-run demos:
+
+- `send_message.jl` posts a simple text status and logs send progress.
+- `send_image.jl` loads `examples/screenshot.png`, posts it with ALT text, and logs when bytes are read/uploaded.
+- `send_gif.jl` procedurally generates an animation, writes it to a temp GIF, and reports each step (`@info`).
+- `send_mp4.jl` renders a Lorenz attractor with GLMakie, records an MP4 inside `mktempdir` (no lingering files), and logs when data generation and upload start/finish.
+
+All scripts rely on `DotEnv.load!()` so you can keep `BSKY_HANDLE`, `BSKY_PASSWORD`, and optional caption/ALT overrides in a local `.env`.
 
 ### Error Handling
 
