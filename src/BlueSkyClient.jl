@@ -1,23 +1,29 @@
 module BlueSkyClient
 
 using Dates
+using FFMPEG
 using HTTP
 using JSON3
 
 export Client,
     Session,
     PostReference,
+    AspectRatio,
     BlueSkyError,
     login!,
     send_post,
     send_image,
     send_images,
+    send_video,
+    send_gif,
     upload_blob
 
 const DEFAULT_BASE_URL = "https://bsky.social"
 const FEED_COLLECTION = "app.bsky.feed.post"
 const IMAGES_EMBED_TYPE = "app.bsky.embed.images"
 const IMAGE_BLOCK_TYPE = "app.bsky.embed.images#image"
+const VIDEO_EMBED_TYPE = "app.bsky.embed.video"
+const ASPECT_RATIO_TYPE = "app.bsky.embed.defs#aspectRatio"
 const MAX_IMAGES_PER_POST = 4
 const DEFAULT_LANGUAGE_CODE = "en"
 
@@ -73,6 +79,23 @@ Lightweight reference to a record returned from `app.bsky.feed.post`.
 struct PostReference
     uri::String
     cid::String
+end
+
+"""
+    AspectRatio(width, height)
+
+Aspect ratio metadata for image/video embeds. Width and height must be positive integers.
+"""
+struct AspectRatio
+    width::Int
+    height::Int
+    function AspectRatio(width::Integer, height::Integer)
+        width_val = Int(width)
+        height_val = Int(height)
+        width_val < 1 && throw(ArgumentError("Aspect ratio width must be >= 1."))
+        height_val < 1 && throw(ArgumentError("Aspect ratio height must be >= 1."))
+        new(width_val, height_val)
+    end
 end
 
 """
@@ -233,6 +256,64 @@ function send_images(
     )
 end
 
+"""
+    send_video(client, text, video; alt=\"\", aspect_ratio=nothing, mime_type=\"video/mp4\", repo=nothing, langs=nothing, created_at=nothing)
+
+Upload a single video (mp4) with optional ALT text and aspect ratio, then post it alongside `text`.
+"""
+function send_video(
+    client::Client,
+    text::AbstractString,
+    video::AbstractVector{UInt8};
+    alt::AbstractString="",
+    aspect_ratio::Union{Nothing,AspectRatio}=nothing,
+    repo::Union{Nothing,AbstractString}=nothing,
+    langs::Union{Nothing,AbstractVector{<:AbstractString}}=nothing,
+    created_at::Union{Nothing,DateTime,AbstractString}=nothing,
+    mime_type::AbstractString="video/mp4",
+)
+    upload = upload_blob(client, Vector{UInt8}(video); content_type=String(mime_type))
+    embed = _build_video_embed(upload["blob"], String(alt), aspect_ratio)
+    return send_post(
+        client,
+        text;
+        repo=repo,
+        langs=langs,
+        created_at=created_at,
+        embed=embed,
+    )
+end
+
+"""
+    send_gif(client, text, gif; alt="", aspect_ratio=nothing, repo=nothing, langs=nothing, created_at=nothing)
+
+Transcode an animated GIF to MP4 (so Bluesky can play it) and post it with optional ALT text.
+"""
+function send_gif(
+    client::Client,
+    text::AbstractString,
+    gif::AbstractVector{UInt8};
+    alt::AbstractString="",
+    aspect_ratio::Union{Nothing,AspectRatio}=nothing,
+    repo::Union{Nothing,AbstractString}=nothing,
+    langs::Union{Nothing,AbstractVector{<:AbstractString}}=nothing,
+    created_at::Union{Nothing,DateTime,AbstractString}=nothing,
+)
+    bytes = Vector{UInt8}(gif)
+    mp4_bytes, detected_ratio = _transcode_gif_to_mp4(bytes)
+    ratio = aspect_ratio === nothing ? detected_ratio : aspect_ratio
+    return send_video(
+        client,
+        text,
+        mp4_bytes;
+        alt=alt,
+        aspect_ratio=ratio,
+        repo=repo,
+        langs=langs,
+        created_at=created_at,
+    )
+end
+
 function _decode_session(data)
     Session(
         String(data["did"]),
@@ -372,6 +453,72 @@ function _build_images_embed(blobs::AbstractVector, alts::Vector{String})
     end
 
     return Dict("images" => images_payload, "\$type" => IMAGES_EMBED_TYPE)
+end
+
+function _build_video_embed(blob, alt::String, aspect_ratio::Union{Nothing,AspectRatio})
+    embed = Dict{String,Any}("\$type" => VIDEO_EMBED_TYPE, "video" => blob)
+    if !isempty(alt)
+        embed["alt"] = alt
+    end
+    if aspect_ratio !== nothing
+        embed["aspectRatio"] = _aspect_ratio_dict(aspect_ratio)
+    end
+    return embed
+end
+
+function _aspect_ratio_dict(ratio::AspectRatio)
+    Dict(
+        "\$type" => ASPECT_RATIO_TYPE,
+        "width" => ratio.width,
+        "height" => ratio.height,
+    )
+end
+
+function _transcode_gif_to_mp4(gif::Vector{UInt8})
+    gif_path = tempname() * ".gif"
+    mp4_path = tempname() * ".mp4"
+    open(gif_path, "w") do io
+        write(io, gif)
+    end
+    try
+        _run_ffmpeg_transcode(gif_path, mp4_path)
+        mp4_bytes = read(mp4_path)
+        ratio = _detect_video_aspect_ratio(mp4_path)
+        return mp4_bytes, ratio
+    finally
+        isfile(gif_path) && rm(gif_path; force=true)
+        isfile(mp4_path) && rm(mp4_path; force=true)
+    end
+end
+
+function _run_ffmpeg_transcode(in_path::AbstractString, out_path::AbstractString)
+    FFMPEG.ffmpeg() do ffmpeg_path
+        run(
+            `$ffmpeg_path -y -i $in_path -movflags +faststart -pix_fmt yuv420p -vf $(
+                "scale=trunc(iw/2)*2:trunc(ih/2)*2"
+            ) $out_path`,
+        )
+    end
+end
+
+function _detect_video_aspect_ratio(path::AbstractString)
+    raw = FFMPEG.ffprobe() do probe_path
+        cmd = `$probe_path -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 $path`
+        try
+            strip(read(cmd, String))
+        catch
+            ""
+        end
+    end
+    isempty(raw) && return nothing
+    parts = split(raw, 'x')
+    length(parts) == 2 || return nothing
+    width = tryparse(Int, parts[1])
+    height = tryparse(Int, parts[2])
+    if width === nothing || height === nothing || width < 1 || height < 1
+        return nothing
+    end
+    return AspectRatio(width, height)
 end
 
 end # module BlueSkyClient

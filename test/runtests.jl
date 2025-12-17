@@ -67,3 +67,26 @@ end
     @test image_entry["alt"] == "ALT"
     @test image_entry["image"] == blob
 end
+
+@testset "video helpers" begin
+    ratio = AspectRatio(16, 9)
+    blob = Dict(
+        "\$type" => "blob",
+        "mimeType" => "video/mp4",
+        "size" => 2048,
+        "ref" => Dict("\$link" => "bafyvideo"),
+    )
+
+    embed = BlueSkyClient._build_video_embed(blob, "ALT video", ratio)
+    @test embed["\$type"] == BlueSkyClient.VIDEO_EMBED_TYPE
+    @test embed["video"] == blob
+    @test embed["alt"] == "ALT video"
+    @test embed["aspectRatio"]["width"] == 16
+    @test embed["aspectRatio"]["height"] == 9
+
+    trimmed = BlueSkyClient._build_video_embed(blob, "", nothing)
+    @test !haskey(trimmed, "alt")
+    @test !haskey(trimmed, "aspectRatio")
+
+    @test_throws ArgumentError AspectRatio(0, 9)
+end

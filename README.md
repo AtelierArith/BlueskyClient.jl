@@ -51,6 +51,49 @@ send_image(
 
 For multiple images, pass a vector of byte arrays to `send_images` and provide matching `alts` (missing entries are padded with empty strings).
 
+Need a quick script? See `examples/send_gif.jl` for an end-to-end sample that pulls a GIF path from the `BSKY_GIF_PATH` environment variable and posts it with proper ALT text via `send_gif`, which performs the MP4 transcode for you.
+
+### Posting GIFs or Video
+
+Animated GIFs can be sent by calling `send_gif`, which writes the bytes to a temporary file, transcodes them to MP4 via `FFMPEG.jl`, and then posts the resulting clip (Bluesky only animates `app.bsky.embed.video`). Make sure `ffmpeg` is available on your PATH (Julia's stdlib `FFMPEG` package downloads one automatically):
+
+```julia
+using BlueSkyClient
+
+client = Client()
+login!(client; identifier=ENV["BSKY_HANDLE"], password=ENV["BSKY_PASSWORD"])
+
+gif_bytes = read("loop.gif")
+send_gif(
+    client,
+    "Animated progress demo",
+    gif_bytes;
+    alt="Looping render of the new visualization",
+    # aspect_ratio is optional; defaults to the detected width/height from ffprobe.
+    aspect_ratio=AspectRatio(960, 540),
+)
+```
+
+For MP4 or other video sources, fall back to `send_video` and supply the bytes explicitly:
+
+```julia
+using BlueSkyClient
+
+client = Client()
+login!(client; identifier=ENV["BSKY_HANDLE"], password=ENV["BSKY_PASSWORD"])
+
+video_bytes = read("clip.mp4")
+aspect = AspectRatio(1920, 1080)
+send_video(
+    client,
+    "Launch capture from Julia 🚀",
+    video_bytes;
+    alt="Screen recording of the latest feature",
+    aspect_ratio=aspect,
+)
+```
+`examples/send_gif.jl` lets you override the caption with `BSKY_GIF_TEXT` / `BSKY_GIF_ALT`.
+
 ### Error Handling
 
 Network or protocol failures raise `BlueSkyError`, which exposes the HTTP status, the AT error code (if provided), and the server message. You can capture it with standard Julia `try`/`catch` blocks to handle authentication failures, rate limiting, etc.
