@@ -1,4 +1,4 @@
-module BlueSkyClient
+module BlueskyClient
 
 using Dates
 using FFMPEG
@@ -521,4 +521,4 @@ function _detect_video_aspect_ratio(path::AbstractString)
     return AspectRatio(width, height)
 end
 
-end # module BlueSkyClient
+end # module BlueskyClient

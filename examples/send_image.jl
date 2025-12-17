@@ -1,4 +1,4 @@
-using BlueSkyClient
+using BlueskyClient
 using DotEnv; DotEnv.load!()
 
 client = Client()
@@ -9,6 +9,6 @@ send_image(
     client,
     "Screenshot from today's build ✅",
     img_bytes,
-    "BlueSkyClient.jl terminal output showing the new client API",
+    "BlueskyClient.jl terminal output showing the new client API",
     mime_type="image/png",
 )

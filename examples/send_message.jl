@@ -1,4 +1,4 @@
-using BlueSkyClient
+using BlueskyClient
 using DotEnv; DotEnv.load!()
 
 client = Client()  # defaults to https://bsky.social

@@ -1,4 +1,4 @@
-name = "BlueSkyClient"
+name = "BlueskyClient"
 uuid = "3ef48bec-961c-4bde-8caa-453a8d838715"
 version = "0.1.0"
 authors = ["Satoshi Terasaki <terasakisatoshi.math@gmail.com>"]

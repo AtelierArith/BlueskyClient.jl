@@ -1,4 +1,4 @@
-using BlueSkyClient
+using BlueskyClient
 using DotEnv
 using GLMakie
 
@@ -60,7 +60,7 @@ upload = upload_blob(client, Vector{UInt8}(video_bytes); content_type="video/mp4
 embed = Dict(
     "\$type" => "app.bsky.embed.video",
     "video" => upload["blob"],
-    "alt" => get(ENV, "BSKY_VIDEO_ALT", "MP4 sample posted from BlueSkyClient.jl"),
+    "alt" => get(ENV, "BSKY_VIDEO_ALT", "MP4 sample posted from BlueskyClient.jl"),
     "aspectRatio" => Dict("width" => 16, "height" => 9),
 )
 

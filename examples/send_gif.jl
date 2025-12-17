@@ -1,4 +1,4 @@
-using BlueSkyClient
+using BlueskyClient
 using DotEnv
 
 DotEnv.load!()
@@ -34,7 +34,7 @@ login!(client; identifier=ENV["BSKY_HANDLE"], password=ENV["BSKY_PASSWORD"])
 gif_path = "anim_fps15.gif"
 
 post_text = get(ENV, "BSKY_GIF_TEXT", "Animated post from Julia 🎞️")
-alt_text = get(ENV, "BSKY_GIF_ALT", "Animated GIF uploaded via BlueSkyClient.jl")
+alt_text = get(ENV, "BSKY_GIF_ALT", "Animated GIF uploaded via BlueskyClient.jl")
 
 gif_bytes = read(gif_path)
 

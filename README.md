@@ -1,6 +1,6 @@
-# BlueSkyClient.jl
+# BlueskyClient.jl
 
-BlueSkyClient.jl is a Julia implementation of an [AT Protocol](https://atproto.com/) client for the BlueSky social network. It aims to mirror the official TypeScript (`atproto/`) and community Python (`py_atproto/`) SDKs that live in this repository, offering an idiomatic Julia API for authenticating, posting, and eventually covering the full lexicon surface.
+BlueskyClient.jl is a Julia implementation of an [AT Protocol](https://atproto.com/) client for the BlueSky social network. It aims to mirror the official TypeScript (`atproto/`) and community Python (`py_atproto/`) SDKs that live in this repository, offering an idiomatic Julia API for authenticating, posting, and eventually covering the full lexicon surface.
 
 ## Getting Started
 
@@ -13,7 +13,7 @@ This installs the dependencies declared in `Project.toml` (currently `HTTP` and 
 ### Quick Example
 
 ```julia
-using BlueSkyClient
+using BlueskyClient
 
 client = Client()  # defaults to https://bsky.social
 
@@ -34,7 +34,7 @@ println("New record URI: ", post.uri)
 You can attach up to four images per post. Each image should include meaningful ALT text for accessibility:
 
 ```julia
-using BlueSkyClient
+using BlueskyClient
 
 client = Client()
 login!(client; identifier=ENV["BSKY_HANDLE"], password=ENV["BSKY_PASSWORD"])
@@ -44,7 +44,7 @@ send_image(
     client,
     "Screenshot from today's build ✅",
     img_bytes,
-    "BlueSkyClient.jl terminal output showing the new client API",
+    "BlueskyClient.jl terminal output showing the new client API",
     mime_type="image/png",
 )
 ```
@@ -58,7 +58,7 @@ Need a quick script? See `examples/send_gif.jl` for an end-to-end sample that pu
 Animated GIFs can be sent by calling `send_gif`, which writes the bytes to a temporary file, transcodes them to MP4 via `FFMPEG.jl`, and then posts the resulting clip (Bluesky only animates `app.bsky.embed.video`). Make sure `ffmpeg` is available on your PATH (Julia's stdlib `FFMPEG` package downloads one automatically):
 
 ```julia
-using BlueSkyClient
+using BlueskyClient
 
 client = Client()
 login!(client; identifier=ENV["BSKY_HANDLE"], password=ENV["BSKY_PASSWORD"])
@@ -77,7 +77,7 @@ send_gif(
 For MP4 or other video sources, fall back to `send_video` and supply the bytes explicitly:
 
 ```julia
-using BlueSkyClient
+using BlueskyClient
 
 client = Client()
 login!(client; identifier=ENV["BSKY_HANDLE"], password=ENV["BSKY_PASSWORD"])
@@ -132,4 +132,4 @@ This initial drop focuses on login and posting. The next milestones include:
 3. Automated lexicon bindings derived from `atproto/lexicons`.
 
 Contributions are welcome—open issues describing the desired endpoint or lexicon change, reference the upstream implementations, and describe how you tested the change across Julia, pnpm, and poetry targets.
-# BlueSkyClient.jl
+# BlueskyClient.jl
