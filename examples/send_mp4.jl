@@ -39,29 +39,34 @@ fig, ax, l = lines(points, color = colors,
     axis = (; type = Axis3, protrusions = (0, 0, 0, 0),
               viewmode = :fit, limits = (-30, 30, -30, 30, 0, 50)))
 
-record(fig, "lorenz.mp4", 1:120) do frame
-    for i in 1:50
-        push!(points, step!(attractor))
-        push!(colors, frame)
+mktempdir() do dir
+    video_path = joinpath(dir, "lorenz.mp4")
+    @info "Recording Lorenz attractor animation" path=video_path
+    record(fig, video_path, 1:120) do frame
+        for i in 1:50
+            push!(points, step!(attractor))
+            push!(colors, frame)
+        end
+        ax.azimuth[] = 1.7pi + 0.3 * sin(2pi * frame / 120)
+        Makie.update!(l, arg1 = points, color = colors) # Makie 0.24+
+        l.colorrange = (0, frame)
     end
-    ax.azimuth[] = 1.7pi + 0.3 * sin(2pi * frame / 120)
-    Makie.update!(l, arg1 = points, color = colors) # Makie 0.24+
-    l.colorrange = (0, frame)
+    @info "Completed Lorenz animation recording"
+
+    client = Client()
+    login!(client; identifier=ENV["BSKY_HANDLE"], password=ENV["BSKY_PASSWORD"])
+
+    video_bytes = read(video_path)
+    upload = upload_blob(client, Vector{UInt8}(video_bytes); content_type="video/mp4")
+
+    embed = Dict(
+        "\$type" => "app.bsky.embed.video",
+        "video" => upload["blob"],
+        "alt" => get(ENV, "BSKY_VIDEO_ALT", "MP4 sample posted from BlueskyClient.jl"),
+        "aspectRatio" => Dict("width" => 16, "height" => 9),
+    )
+
+    @info "Sending MP4 post to Bluesky"
+    post = send_post(client, "Post with MP4 attachment 🎬"; embed=embed)
+    @info "MP4 post sent successfully" uri=post.uri
 end
-
-client = Client()
-login!(client; identifier=ENV["BSKY_HANDLE"], password=ENV["BSKY_PASSWORD"])
-
-video_path = "lorenz.mp4"
-video_bytes = read(video_path)
-
-upload = upload_blob(client, Vector{UInt8}(video_bytes); content_type="video/mp4")
-
-embed = Dict(
-    "\$type" => "app.bsky.embed.video",
-    "video" => upload["blob"],
-    "alt" => get(ENV, "BSKY_VIDEO_ALT", "MP4 sample posted from BlueskyClient.jl"),
-    "aspectRatio" => Dict("width" => 16, "height" => 9),
-)
-
-send_post(client, "Post with MP4 attachment 🎬"; embed=embed)

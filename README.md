@@ -1,6 +1,6 @@
 # BlueskyClient.jl
 
-BlueskyClient.jl is a Julia implementation of an [AT Protocol](https://atproto.com/) client for the BlueSky social network. It aims to mirror the official TypeScript (`atproto/`) and community Python (`py_atproto/`) SDKs that live in this repository, offering an idiomatic Julia API for authenticating, posting, and eventually covering the full lexicon surface.
+BlueskyClient.jl is a Julia implementation of an [AT Protocol](https://atproto.com/) client for the Bluesky social network. It aims to mirror the official TypeScript (`atproto/`) and community Python (`py_atproto/`) SDKs that live in this repository, offering an idiomatic Julia API for authenticating, posting, and eventually covering the full lexicon surface.
 
 ## Getting Started
 
@@ -96,7 +96,7 @@ send_video(
 
 ### Error Handling
 
-Network or protocol failures raise `BlueSkyError`, which exposes the HTTP status, the AT error code (if provided), and the server message. You can capture it with standard Julia `try`/`catch` blocks to handle authentication failures, rate limiting, etc.
+Network or protocol failures raise `BlueskyError`, which exposes the HTTP status, the AT error code (if provided), and the server message. You can capture it with standard Julia `try`/`catch` blocks to handle authentication failures, rate limiting, etc.
 
 ## Development Workflow
 
@@ -120,7 +120,7 @@ julia --project=. -e 'using JuliaFormatter; format("src", "test")'
 ## Credentials & Security
 
 - Never commit real handles, passwords, or signing keys. Pull them from environment variables such as `BSKY_HANDLE` / `BSKY_PASSWORD` or a local `.env` that remains git-ignored.
-- Prefer BlueSky App Passwords, especially if you interact with Direct Messages or other scoped features.
+- Prefer Bluesky App Passwords, especially if you interact with Direct Messages or other scoped features.
 - Keep dependency bumps explicit so that lexicon updates remain auditable, and verify upstream commit hashes before trusting new schema files.
 
 ## Future Work
@@ -132,4 +132,3 @@ This initial drop focuses on login and posting. The next milestones include:
 3. Automated lexicon bindings derived from `atproto/lexicons`.
 
 Contributions are welcome—open issues describing the desired endpoint or lexicon change, reference the upstream implementations, and describe how you tested the change across Julia, pnpm, and poetry targets.
-# BlueskyClient.jl

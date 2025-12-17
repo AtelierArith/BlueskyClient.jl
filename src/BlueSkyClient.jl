@@ -9,7 +9,7 @@ export Client,
     Session,
     PostReference,
     AspectRatio,
-    BlueSkyError,
+    BlueskyError,
     login!,
     send_post,
     send_image,
@@ -28,18 +28,18 @@ const MAX_IMAGES_PER_POST = 4
 const DEFAULT_LANGUAGE_CODE = "en"
 
 """
-    BlueSkyError(status, code, message)
+    BlueskyError(status, code, message)
 
 Represents an error returned by a Bluesky Personal Data Server (PDS).
 """
-struct BlueSkyError <: Exception
+struct BlueskyError <: Exception
     status::Int
     code::Union{Nothing,String}
     message::String
 end
 
-function Base.showerror(io::IO, err::BlueSkyError)
-    print(io, "BlueSkyError(", err.status)
+function Base.showerror(io::IO, err::BlueskyError)
+    print(io, "BlueskyError(", err.status)
     if err.code !== nothing
         print(io, ", code=$(err.code)")
     end
@@ -365,7 +365,7 @@ function _handle_response(response::HTTP.Messages.Response)
     code = haskey(parsed, "error") ? parsed["error"] : nothing
     code_str = code === nothing ? nothing : String(code)
     message = haskey(parsed, "message") ? parsed["message"] : "HTTP $(response.status) error"
-    throw(BlueSkyError(response.status, code_str, String(message)))
+    throw(BlueskyError(response.status, code_str, String(message)))
 end
 
 function _parse_json_body(body)

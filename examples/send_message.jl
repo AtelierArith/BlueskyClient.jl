@@ -9,5 +9,8 @@ session = login!(client;
     password   = ENV["BSKY_PASSWORD"],
 )
 
-post = send_post(client, "Hello from Julia and AT Protocol!")
+post_text = "Hello from Julia and AT Protocol!"
+@info "Sending text post to Bluesky"
+post = send_post(client, post_text)
+@info "Text post sent successfully" uri=post.uri
 println("New record URI: ", post.uri)
