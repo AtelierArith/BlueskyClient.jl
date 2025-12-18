@@ -8,7 +8,7 @@ BlueskyClient.jl is a Julia implementation of an [AT Protocol](https://atproto.c
 julia --project=. -e 'using Pkg; Pkg.instantiate()'
 ```
 
-This installs the dependencies declared in `Project.toml` (currently `HTTP` and `JSON3`). For active development, the repo expects Julia 1.10 or later.
+This installs the dependencies declared in `Project.toml` (currently `HTTP` and `JSON3`). For active development, the repo expects Julia 1.12 or later.
 
 ### Quick Example
 
